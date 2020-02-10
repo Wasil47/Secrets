@@ -1,4 +1,5 @@
 // Learn Authentication and Security 
+require('dotenv').config()
 const express = require('express');
 const bodyParser = require('body-parser');
 const ejs = require('ejs');
@@ -18,9 +19,8 @@ const userSchema = new mongoose.Schema({
   password: String
 });
 
-//const secret = process.env.SOME_LONG_UNGUESSABLE_STRING;
-const secret = "Thisisourlittlesecret.";
-userSchema.plugin(encrypt, { secret: secret, encryptedFields: ['password'] }); // Before new mongoose.model (userSchema)
+//const secret = process.env.SECRET;
+userSchema.plugin(encrypt, { secret: process.env.SECRET, encryptedFields: ['password'] }); // Before new mongoose.model (userSchema)
 
 
 const User = new mongoose.model('User', userSchema); //User => collection 'users'
