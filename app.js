@@ -34,7 +34,8 @@ const userSchema = new mongoose.Schema({
   email: String,
   password: String,
   googleId: String,
-  facebookId: String
+  facebookId: String,
+  secret: String
 });
 
 // pLM creat salt and hash
@@ -118,19 +119,42 @@ app.get('/register', (req, res)=>{
   res.render('register');
 });
 app.get('/secrets', (req, res)=>{
-  if (req.isAuthenticated()){
-    res.render('secrets');
-  } else {
-    res.redirect('/login');
-  }
+  User.find({'secret': {$ne: null}}, (err, foundUsers)=>{
+    if (err){
+      console.log(err);      
+    } else {
+      if (foundUsers){
+        res.render('secrets', {usersWithSecrets: foundUsers});
+      }
+    }
+  });
 });
 app.get('/logout', (req, res)=>{
   req.logout();
   res.redirect('/');
 });
+app.get('/submit', (req, res)=>{
+  if (req.isAuthenticated()){
+    res.render('submit');
+  } else {
+    res.redirect('/login');
+  }
+});
+
+app.post('/submit', (req, res)=>{
+  const submittedSecret = req.body.secret;
+  User.findById(req.user.id, (err, foundUser)=>{
+    if (err){
+      console.log(err);
+    } else {
+      foundUser.secret = submittedSecret;
+      foundUser.save( ()=> res.redirect('/secrets') );
+    }
+  });
+  
+});
 
 app.post('/register', (req, res)=>{
-
   User.register({username: req.body.username}, req.body.password, (err, user)=>{
     if (err){
       console.log(err);
@@ -142,7 +166,6 @@ app.post('/register', (req, res)=>{
     }
   });
 });
-
 
 app.post('/login', (req, res)=>{
   const user = new User({
